@@ -1,0 +1,21 @@
+{
+  "name": "diary-cards",
+  "version": "1.0.0",
+  "description": "View your Obsidian daily notes as cards",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit && node esbuild.config.mjs production",
+    "preview": "node esbuild.config.mjs preview",
+    "install-vault": "npm run build && mkdir -p \"$VAULT/.obsidian/plugins/diary-cards\" && cp main.js manifest.json styles.css \"$VAULT/.obsidian/plugins/diary-cards/\"",
+    "test": "node esbuild.config.mjs test && node test/dist/summary.test.js && node test/dist/dates.test.js",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "moment": "^2.29.4",
+    "obsidian": "latest",
+    "typescript": "^5.6.0"
+  }
+}

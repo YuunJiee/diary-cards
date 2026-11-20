@@ -1,0 +1,10 @@
+{
+  "id": "diary-cards",
+  "name": "Diary Cards",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.7",
+  "description": "View your daily notes as cards: month cards, a photo calendar, moods and quick one-line entries.",
+  "author": "YuunJiee",
+  "isDesktopOnly": false,
+  "authorUrl": "https://github.com/YuunJiee"
+}

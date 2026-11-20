@@ -1,0 +1,1806 @@
+/* ── 日記卡片 ─────────────────────────────────────────────
+   顏色盡量沿用 Obsidian 的主題變數，所以淺色／深色主題都會跟著變。
+   每個月有自己的一組漸層（--cd-a 深、--cd-b 淺），白字都放在深色那一端。 */
+
+.cd-m1  { --cd-a: #3f5f8f; --cd-b: #8fb3de; }
+.cd-m2  { --cd-a: #a24a6a; --cd-b: #f0a6bb; }
+.cd-m3  { --cd-a: #3e7d6a; --cd-b: #9fd6b8; }
+.cd-m4  { --cd-a: #b0506a; --cd-b: #f6c1c9; }
+.cd-m5  { --cd-a: #4d7a2e; --cd-b: #b9dc8a; }
+.cd-m6  { --cd-a: #2f6f86; --cd-b: #8fd0e0; }
+.cd-m7  { --cd-a: #1f5fa8; --cd-b: #6fc3f0; }
+.cd-m8  { --cd-a: #c0562c; --cd-b: #f6b97a; }
+.cd-m9  { --cd-a: #7a5a2f; --cd-b: #e3c28f; }
+.cd-m10 { --cd-a: #9a3d25; --cd-b: #eb9a6b; }
+.cd-m11 { --cd-a: #5a4a7a; --cd-b: #b8a6d9; }
+.cd-m12 { --cd-a: #2c3e5c; --cd-b: #8ea3c4; }
+
+.workspace-leaf-content[data-type="diary-cards-view"] .view-content.cd-view {
+	padding: 0;
+}
+
+.cd-root {
+	--cd-radius: 22px;
+	--cd-sun: #e0527a;
+	--cd-sat: #3a8fd6;
+	--cd-card: var(--background-primary);
+	--cd-soft: var(--background-secondary);
+	--cd-muted: var(--text-muted);
+	--cd-faint: var(--text-faint);
+	--cd-shadow: 0 10px 30px rgba(20, 30, 60, 0.12), 0 2px 6px rgba(20, 30, 60, 0.06);
+	position: relative;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background: var(--background-primary);
+	color: var(--text-normal);
+}
+
+.theme-dark .cd-root {
+	--cd-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+	--cd-card: var(--background-secondary);
+	--cd-soft: var(--background-primary-alt);
+}
+
+.cd-root [role="button"] {
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	user-select: none;
+}
+
+.cd-root [role="button"]:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 2px;
+}
+
+.cd-root button {
+	font: inherit;
+	color: inherit;
+	box-shadow: none;
+	height: auto;
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.cd-scroll {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: 16px 0 calc(110px + var(--cd-safe-bottom, 0px));
+}
+
+.cd-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px !important;
+	border-radius: 50% !important;
+	color: var(--cd-muted) !important;
+}
+
+.cd-icon-btn:hover {
+	background: var(--background-modifier-hover) !important;
+	color: var(--text-normal) !important;
+}
+
+.cd-hint {
+	margin: 14px 16px 0;
+	text-align: center;
+	font-size: 12px;
+	color: var(--cd-faint);
+}
+
+/* 右下的「寫日記」按鈕 */
+.cd-root .cd-fab {
+	position: absolute;
+	left: 50%;
+	bottom: calc(24px + var(--cd-safe-bottom, 0px));
+	transform: translateX(-50%);
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+	transition: transform 0.15s ease;
+}
+
+.cd-root .cd-fab:active {
+	transform: translateX(-50%) scale(0.92);
+}
+
+/* ── 年份頁 ── */
+
+.cd-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 20px;
+}
+
+/* 左上：連續記錄天數 */
+.cd-streak {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.cd-streak-line {
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+}
+
+.cd-streak-num {
+	font-size: 26px;
+	font-weight: 800;
+	line-height: 1;
+	color: var(--interactive-accent);
+	font-variant-numeric: tabular-nums;
+}
+
+.cd-streak-unit {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.cd-streak-unit.is-start {
+	font-size: 14px;
+}
+
+.cd-streak-sub {
+	font-size: 12px;
+	color: var(--cd-muted);
+}
+
+.cd-stats {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+}
+
+.cd-stats-num {
+	font-size: 22px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.cd-stats-label {
+	font-size: 12px;
+	color: var(--cd-muted);
+}
+
+.cd-yearnav {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	margin: 28px 0 18px;
+}
+
+.cd-yearnav-label {
+	font-size: 26px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	min-width: 80px;
+	text-align: center;
+}
+
+.cd-carousel {
+	display: flex;
+	gap: 16px;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	padding: 8px 14vw 44px;
+	margin-bottom: -26px;
+	scrollbar-width: none;
+}
+
+.cd-carousel::-webkit-scrollbar {
+	display: none;
+}
+
+.cd-root .cd-month-card {
+	box-sizing: border-box;
+	align-items: stretch;
+	position: relative;
+	flex: 0 0 72%;
+	max-width: 320px;
+	aspect-ratio: 3 / 4.4;
+	scroll-snap-align: center;
+	border-radius: var(--cd-radius);
+	padding: 22px 20px 18px;
+	display: flex;
+	flex-direction: column;
+	text-align: left;
+	color: #fff;
+	background: linear-gradient(160deg, var(--cd-b) 0%, var(--cd-a) 78%);
+	background-size: cover;
+	background-position: center;
+	box-shadow: var(--cd-shadow);
+	overflow: hidden;
+	transition: transform 0.2s ease;
+	/* 卡片大小由寬度和比例決定，跟內容無關，所以可以用高度做 container query */
+	container-type: size;
+}
+
+.cd-root .cd-month-card:active {
+	transform: scale(0.97);
+}
+
+/* 有封面照片時，加一層暗色讓白字看得清楚 */
+.cd-month-card.has-cover::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.05) 40%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+.cd-month-card > * {
+	position: relative;
+}
+
+.cd-month-card.is-future {
+	opacity: 0.45;
+}
+
+.cd-mc-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.cd-mc-abbr {
+	font-size: 44px;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	line-height: 1;
+	text-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+}
+
+.cd-mc-sub {
+	font-size: 12px;
+	opacity: 0.85;
+}
+
+.cd-mc-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 7px;
+	margin-top: 22px;
+	width: 78%;
+	max-width: 210px;
+}
+
+.cd-dot {
+	aspect-ratio: 1;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.22);
+}
+
+.cd-dot.is-blank {
+	background: none;
+}
+
+.cd-dot.is-on {
+	background: #fff;
+	box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.cd-dot.is-today {
+	outline: 2px solid #fff;
+	outline-offset: 2px;
+}
+
+.cd-mc-quote {
+	margin-top: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	/* 卡片高度固定：空間不夠時壓縮引言，不要把底下的篇數和心情擠出卡片 */
+	min-height: 0;
+	overflow: hidden;
+}
+
+.cd-mc-quote-text {
+	font-size: 15px;
+	line-height: 1.5;
+	font-weight: 600;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	flex: none;
+}
+
+/* 卡片高度固定，引言能放幾行要看卡片多高（小月曆最多六列，也要算進去）
+   注意：container query 量的是扣掉 padding 的內容高度 */
+@container (max-height: 360px) {
+	.cd-mc-quote-text {
+		-webkit-line-clamp: 2;
+	}
+}
+
+/* 手機上的卡片很小：引言只放一行，日期移到同一列 */
+@container (max-height: 310px) {
+	.cd-mc-grid {
+		margin-top: 12px;
+		gap: 5px;
+	}
+	.cd-mc-quote {
+		flex-direction: row;
+		align-items: baseline;
+		gap: 6px;
+	}
+	.cd-mc-quote-text {
+		-webkit-line-clamp: 1;
+		font-size: 14px;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+	.cd-mc-quote-date {
+		flex: none;
+	}
+	.cd-mc-foot {
+		margin-top: 10px;
+		padding-top: 10px;
+	}
+}
+
+/* 再小就放不下引言了 */
+@container (max-height: 200px) {
+	.cd-mc-quote {
+		display: none;
+	}
+}
+
+.cd-mc-quote-text::before {
+	content: "「";
+}
+
+.cd-mc-quote-text::after {
+	content: "」";
+}
+
+.cd-locale-en .cd-mc-quote-text::before {
+	content: "\201C";
+}
+
+.cd-locale-en .cd-mc-quote-text::after {
+	content: "\201D";
+}
+
+.cd-mc-quote-date {
+	font-size: 11px;
+	opacity: 0.75;
+}
+
+.cd-mc-foot {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid rgba(255, 255, 255, 0.3);
+	font-size: 12px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex: none;
+	opacity: 0.95;
+}
+
+/* ── 心情的顏色：五級，可以在設定裡換配色 ──
+   --cd-mood 是圖示和邊框的顏色，--cd-mood-fill 是年份格子圖的填色。
+   想自己調的話，用 CSS 片段覆蓋 .cd-mood-1 到 .cd-mood-5 的這兩個變數。 */
+
+/* 暖到冷（預設）：好心情暖橘紅，壞心情深藍 */
+.cd-mood-5 { --cd-mood: #e07a5f; --cd-mood-fill: #e07a5f; }
+.cd-mood-4 { --cd-mood: #f2a65a; --cd-mood-fill: #f2a65a; }
+.cd-mood-3 { --cd-mood: #d9ad5f; --cd-mood-fill: #f2cc8f; }
+.cd-mood-2 { --cd-mood: #81b29a; --cd-mood-fill: #81b29a; }
+.cd-mood-1 { --cd-mood: #3d5a80; --cd-mood-fill: #3d5a80; }
+
+.theme-dark .cd-mood-5 { --cd-mood: #ec8f75; --cd-mood-fill: #ec8f75; }
+.theme-dark .cd-mood-4 { --cd-mood: #f5b574; --cd-mood-fill: #f5b574; }
+.theme-dark .cd-mood-3 { --cd-mood: #f4d6a5; --cd-mood-fill: #f4d6a5; }
+.theme-dark .cd-mood-2 { --cd-mood: #95c4ad; --cd-mood-fill: #95c4ad; }
+.theme-dark .cd-mood-1 { --cd-mood: #7d9cc4; --cd-mood-fill: #7d9cc4; }
+
+/* 繽紛：橘、綠、灰、藍、紫 */
+.cd-palette-classic .cd-mood-5 { --cd-mood: #e8963a; --cd-mood-fill: #e8963a; }
+.cd-palette-classic .cd-mood-4 { --cd-mood: #5fa86a; --cd-mood-fill: #5fa86a; }
+.cd-palette-classic .cd-mood-3 { --cd-mood: #8b97a8; --cd-mood-fill: #8b97a8; }
+.cd-palette-classic .cd-mood-2 { --cd-mood: #5b86c9; --cd-mood-fill: #5b86c9; }
+.cd-palette-classic .cd-mood-1 { --cd-mood: #8a6bc4; --cd-mood-fill: #8a6bc4; }
+
+.theme-dark .cd-palette-classic .cd-mood-5 { --cd-mood: #f2ab5c; --cd-mood-fill: #f2ab5c; }
+.theme-dark .cd-palette-classic .cd-mood-4 { --cd-mood: #7cc487; --cd-mood-fill: #7cc487; }
+.theme-dark .cd-palette-classic .cd-mood-3 { --cd-mood: #a3aebd; --cd-mood-fill: #a3aebd; }
+.theme-dark .cd-palette-classic .cd-mood-2 { --cd-mood: #7ea3df; --cd-mood-fill: #7ea3df; }
+.theme-dark .cd-palette-classic .cd-mood-1 { --cd-mood: #a88ad9; --cd-mood-fill: #a88ad9; }
+
+/* 柔和：格子用淡色，圖示保留深一點的顏色才看得清楚 */
+.cd-palette-soft .cd-mood-5 { --cd-mood: #e8963a; --cd-mood-fill: #f6b98a; }
+.cd-palette-soft .cd-mood-4 { --cd-mood: #5fa86a; --cd-mood-fill: #a9d6a5; }
+.cd-palette-soft .cd-mood-3 { --cd-mood: #8b97a8; --cd-mood-fill: #d3d9e1; }
+.cd-palette-soft .cd-mood-2 { --cd-mood: #5b86c9; --cd-mood-fill: #a9c4ec; }
+.cd-palette-soft .cd-mood-1 { --cd-mood: #8a6bc4; --cd-mood-fill: #c9b8e8; }
+
+.theme-dark .cd-palette-soft .cd-mood-5 { --cd-mood: #f2ab5c; --cd-mood-fill: #b98962; }
+.theme-dark .cd-palette-soft .cd-mood-4 { --cd-mood: #7cc487; --cd-mood-fill: #7fa27b; }
+.theme-dark .cd-palette-soft .cd-mood-3 { --cd-mood: #a3aebd; --cd-mood-fill: #8f97a3; }
+.theme-dark .cd-palette-soft .cd-mood-2 { --cd-mood: #7ea3df; --cd-mood-fill: #7d92b3; }
+.theme-dark .cd-palette-soft .cd-mood-1 { --cd-mood: #a88ad9; --cd-mood-fill: #9585ad; }
+
+/* 單色：跟著主題色，心情越好格子越深；圖示一律用主題色 */
+.cd-palette-mono .cd-mood-5 { --cd-mood: var(--interactive-accent); --cd-mood-fill: color-mix(in srgb, var(--interactive-accent) 100%, transparent); }
+.cd-palette-mono .cd-mood-4 { --cd-mood: var(--interactive-accent); --cd-mood-fill: color-mix(in srgb, var(--interactive-accent) 72%, transparent); }
+.cd-palette-mono .cd-mood-3 { --cd-mood: var(--interactive-accent); --cd-mood-fill: color-mix(in srgb, var(--interactive-accent) 48%, transparent); }
+.cd-palette-mono .cd-mood-2 { --cd-mood: var(--interactive-accent); --cd-mood-fill: color-mix(in srgb, var(--interactive-accent) 28%, transparent); }
+.cd-palette-mono .cd-mood-1 { --cd-mood: var(--interactive-accent); --cd-mood-fill: color-mix(in srgb, var(--interactive-accent) 14%, transparent); }
+
+.cd-mood-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1em;
+	height: 1em;
+	color: var(--cd-mood, currentColor);
+	flex: none;
+	line-height: 1;
+}
+
+.cd-mood-icon svg {
+	width: 100%;
+	height: 100%;
+	display: block;
+}
+
+.cd-mc-moods {
+	display: inline-flex;
+	gap: 3px;
+	font-size: 16px;
+	vertical-align: middle;
+}
+
+/* ── 月份頁 ── */
+
+.cd-bar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 8px 0 6px;
+}
+
+.cd-bar-title {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.cd-bar-sub {
+	font-size: 12px;
+	color: var(--cd-muted);
+}
+
+.cd-bar-main {
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.cd-bar-actions {
+	display: flex;
+	align-items: center;
+}
+
+.cd-top-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+/* 「今天」膠囊按鈕 */
+.cd-root .cd-today-btn {
+	padding: 6px 14px;
+	border-radius: 999px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--interactive-accent);
+	background: var(--background-modifier-hover);
+	border: 1px solid var(--background-modifier-border);
+	white-space: nowrap;
+}
+
+.cd-root .cd-today-btn:active {
+	transform: scale(0.95);
+}
+
+.cd-cal {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 4px;
+	margin: 14px 16px 0;
+	padding: 14px 12px;
+	border-radius: var(--cd-radius);
+	background: var(--cd-card);
+	box-shadow: var(--cd-shadow);
+}
+
+.cd-cal-wd {
+	text-align: center;
+	font-size: 11px;
+	color: var(--cd-faint);
+	padding-bottom: 6px;
+}
+
+.cd-cal-wd.is-sun,
+.cd-cal-day.is-sun {
+	color: var(--cd-sun);
+}
+
+.cd-cal-wd.is-sat,
+.cd-cal-day.is-sat {
+	color: var(--cd-sat);
+}
+
+.cd-root .cd-cal-day {
+	position: relative;
+	aspect-ratio: 1;
+	justify-self: center;
+	width: 100%;
+	max-width: 64px;
+	border-radius: 12px;
+	overflow: hidden;
+	background-size: cover;
+	background-position: center;
+	font-size: 14px;
+	font-variant-numeric: tabular-nums;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.cd-root .cd-cal-day:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.cd-root .cd-cal-day.is-on {
+	background: linear-gradient(160deg, var(--cd-b), var(--cd-a));
+	color: #fff;
+	font-weight: 700;
+}
+
+/* 有封面的日子：整格是照片，日期疊在上面 */
+.cd-root .cd-cal-day.has-cover {
+	background-size: cover;
+	background-position: center;
+	color: #fff;
+	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.cd-cal-day.is-today {
+	box-shadow: inset 0 0 0 2px var(--interactive-accent) !important;
+}
+
+.cd-list {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 12px;
+	margin: 20px 16px 0;
+}
+
+.cd-empty {
+	text-align: center;
+	color: var(--cd-faint);
+	padding: 40px 0;
+}
+
+.cd-root .cd-day-card {
+	display: flex;
+	align-items: stretch;
+	gap: 14px;
+	min-height: 84px;
+	padding: 14px 14px 14px 18px;
+	border-radius: 18px;
+	background: var(--cd-card);
+	box-shadow: var(--cd-shadow);
+	text-align: left;
+	overflow: hidden;
+	transition: transform 0.15s ease;
+}
+
+.cd-root .cd-day-card:active {
+	transform: scale(0.98);
+}
+
+/* 日記卡片上方的小標：日期 · 星期，心情在右邊 */
+.cd-dc-meta {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.cd-dc-num {
+	font-size: 15px;
+	font-weight: 800;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+}
+
+.cd-dc-wd {
+	font-size: 12px;
+	color: var(--cd-muted);
+}
+
+.cd-dc-wd.is-sun {
+	color: var(--cd-sun);
+}
+
+.cd-dc-wd.is-sat {
+	color: var(--cd-sat);
+}
+
+.cd-dc-mood {
+	margin-left: auto;
+	font-size: 18px;
+}
+
+.cd-dc-body {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.cd-dc-text {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.55;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.cd-dc-text.is-empty {
+	color: var(--cd-faint);
+	font-style: italic;
+}
+
+.cd-dc-cover {
+	flex: 0 0 72px;
+	width: 72px;
+	height: 72px;
+	align-self: center;
+	object-fit: cover;
+	border-radius: 12px;
+}
+
+/* ── 單篇日記 ── */
+
+.cd-reader {
+	margin: 16px 16px 0;
+	border-radius: var(--cd-radius);
+	background: var(--cd-card);
+	box-shadow: var(--cd-shadow);
+	position: relative;
+	overflow: hidden;
+}
+
+.cd-reader-inner {
+	padding: 28px 22px 26px;
+}
+
+/* 沒有封面時，上緣一條月份顏色 */
+.cd-reader:not(.has-cover)::before {
+	content: "";
+	position: absolute;
+	inset: 0 0 auto 0;
+	height: 6px;
+	background: linear-gradient(90deg, var(--cd-a), var(--cd-b));
+}
+
+/* ── 單篇頁：照片輪播 ── */
+
+.cd-gallery {
+	position: relative;
+	background: #111;
+}
+
+.cd-gallery-track {
+	display: flex;
+	aspect-ratio: 4 / 3;
+	max-height: 460px;
+	width: 100%;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	scrollbar-width: none;
+}
+
+.cd-gallery-track::-webkit-scrollbar {
+	display: none;
+}
+
+.cd-gallery-track:focus {
+	outline: none;
+}
+
+.cd-gallery-slide {
+	position: relative;
+	flex: 0 0 100%;
+	height: 100%;
+	scroll-snap-align: start;
+	overflow: hidden;
+}
+
+.cd-gallery-slide::before {
+	content: "";
+	position: absolute;
+	inset: -30px;
+	background: var(--cd-img) center / cover;
+	filter: blur(24px) brightness(0.75);
+}
+
+/* 主題常對 img 設 max-width / 邊框，這裡明確蓋掉 */
+.cd-root .cd-gallery-slide img {
+	position: relative;
+	display: block;
+	width: 100%;
+	max-width: none;
+	height: 100%;
+	margin: 0;
+	border: 0;
+	border-radius: 0;
+	object-fit: contain;
+}
+
+.cd-gallery-counter {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	padding: 3px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	color: #fff;
+	background: rgba(0, 0, 0, 0.45);
+}
+
+.cd-gallery-dots {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 10px;
+	display: flex;
+	justify-content: center;
+	gap: 6px;
+	pointer-events: none;
+}
+
+.cd-gallery-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.5);
+	transition: transform 0.2s ease;
+}
+
+.cd-gallery-dot.is-on {
+	background: #fff;
+	transform: scale(1.3);
+}
+
+.cd-root .cd-gallery-arrow {
+	position: absolute;
+	top: calc(50% - 20px);
+	color: #fff !important;
+	background: rgba(0, 0, 0, 0.35) !important;
+	backdrop-filter: blur(4px);
+	transition: opacity 0.2s ease;
+}
+
+.cd-root .cd-gallery-arrow:hover {
+	background: rgba(0, 0, 0, 0.55) !important;
+}
+
+.cd-root .cd-gallery-arrow.is-prev {
+	left: 10px;
+}
+
+.cd-root .cd-gallery-arrow.is-next {
+	right: 10px;
+}
+
+.cd-gallery.at-start .cd-gallery-arrow.is-prev,
+.cd-gallery.at-end .cd-gallery-arrow.is-next {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.cd-reader-mood {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 30px;
+	line-height: 1;
+	margin-bottom: 12px;
+}
+
+.cd-reader-mood-label {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--cd-muted);
+}
+
+.cd-reader-quote {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 21px;
+	line-height: 1.6;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.cd-reader-quote.is-empty {
+	color: var(--cd-faint);
+	font-weight: 400;
+	font-size: 16px;
+	font-style: italic;
+}
+
+.cd-reader-body {
+	margin-top: 22px;
+	padding-top: 18px;
+	border-top: 1px dashed var(--background-modifier-border);
+	font-size: 15px;
+	line-height: 1.75;
+}
+
+.cd-reader-body img {
+	border-radius: 12px;
+}
+
+.cd-pager {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	margin: 16px 16px 0;
+}
+
+.cd-root .cd-pager-btn {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 12px 14px;
+	border-radius: 16px;
+	background: var(--cd-soft);
+	text-align: left;
+	min-width: 0;
+}
+
+.cd-root .cd-pager-btn.is-newer {
+	text-align: right;
+}
+
+.cd-pager-btn.is-placeholder {
+	visibility: hidden;
+}
+
+.cd-pager-label {
+	font-size: 11px;
+	color: var(--cd-muted);
+}
+
+.cd-pager-text {
+	font-size: 13px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* ── 年份頁：一年的每一天（12 個月 × 31 天的格子） ── */
+
+.cd-year-grid {
+	margin: 28px 16px 0;
+	padding: 18px 18px 14px;
+	border-radius: var(--cd-radius);
+	background: var(--cd-card);
+	box-shadow: var(--cd-shadow);
+}
+
+.cd-yg-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.cd-yg-title {
+	font-size: 15px;
+	font-weight: 700;
+}
+
+.cd-yg-sub {
+	font-size: 12px;
+	color: var(--cd-muted);
+}
+
+.cd-yg-grid {
+	display: grid;
+	grid-template-columns: 16px repeat(31, minmax(0, 1fr));
+	gap: 2px;
+	margin-top: 14px;
+}
+
+.cd-yg-month {
+	font-size: 9px;
+	line-height: 1;
+	align-self: center;
+	color: var(--cd-faint);
+	font-variant-numeric: tabular-nums;
+}
+
+.cd-yg-day {
+	aspect-ratio: 1;
+	border-radius: 2px;
+	background: color-mix(in srgb, var(--text-normal) 7%, transparent);
+}
+
+.cd-yg-day.is-none,
+.cd-yg-day.is-future {
+	background: none;
+}
+
+.cd-yg-day.is-future {
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-normal) 6%, transparent);
+}
+
+/* 有寫但沒填心情：空心框，跟「普通」的灰色區分開 */
+.cd-yg-day.is-written {
+	background: none;
+	box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text-normal) 45%, transparent);
+	cursor: pointer;
+}
+
+.cd-yg-day.has-mood {
+	box-shadow: none;
+}
+
+.cd-yg-day.has-mood {
+	background: var(--cd-mood-fill, var(--cd-mood));
+}
+
+.cd-yg-day.is-today {
+	outline: 1.5px solid var(--interactive-accent);
+	outline-offset: 1px;
+}
+
+.cd-yg-legend {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.cd-yg-legend-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 16px;
+}
+
+.cd-yg-legend-count {
+	font-size: 12px;
+	color: var(--cd-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+/* ── 月份頁：封面橫幅 ── */
+
+.cd-banner {
+	position: relative;
+	margin: 14px 16px 0;
+	height: 150px;
+	border-radius: var(--cd-radius);
+	background-size: cover;
+	background-position: center;
+	box-shadow: var(--cd-shadow);
+	overflow: hidden;
+}
+
+.cd-banner::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+.cd-banner.is-empty {
+	height: 72px;
+	background: linear-gradient(120deg, var(--cd-b), var(--cd-a));
+}
+
+.cd-banner-label {
+	position: absolute;
+	left: 18px;
+	bottom: 12px;
+	font-size: 30px;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	color: #fff;
+	line-height: 1;
+}
+
+.cd-root .cd-banner-btn {
+	position: absolute;
+	right: 12px;
+	bottom: 12px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	color: #fff;
+	background: rgba(0, 0, 0, 0.35);
+	backdrop-filter: blur(6px);
+}
+
+/* ── 選封面的底部面板 ── */
+
+.cd-sheet-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 10;
+	display: flex;
+	align-items: flex-end;
+	background: rgba(0, 0, 0, 0.4);
+}
+
+.cd-sheet {
+	width: 100%;
+	max-height: 78%;
+	overflow-y: auto;
+	padding: 16px 16px calc(24px + var(--cd-safe-bottom, 0px));
+	border-radius: 22px 22px 0 0;
+	background: var(--background-primary);
+	box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.cd-sheet-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 14px;
+}
+
+.cd-sheet-title {
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.cd-root .cd-sheet-cancel {
+	font-size: 14px;
+	color: var(--cd-muted);
+	padding: 4px 8px;
+}
+
+.cd-sheet-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 8px;
+}
+
+.cd-root .cd-sheet-photo {
+	aspect-ratio: 1;
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.cd-sheet-photo img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.cd-root .cd-sheet-photo.is-selected {
+	outline: 3px solid var(--interactive-accent);
+	outline-offset: 2px;
+}
+
+.cd-root .cd-sheet-auto {
+	width: 100%;
+	margin-top: 16px;
+	padding: 12px;
+	border-radius: 14px;
+	font-size: 14px;
+	background: var(--cd-soft);
+}
+
+.cd-root .cd-sheet-auto.is-selected {
+	color: var(--interactive-accent);
+	font-weight: 600;
+}
+
+/* ── 月份頁：標題列的月份切換 ── */
+
+.cd-bar-month .cd-month-switch {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+}
+
+.cd-bar-month .cd-bar-title {
+	flex: 0 0 auto;
+	min-width: 72px;
+	align-items: center;
+}
+
+.cd-bar-month .cd-month-switch .cd-icon-btn {
+	color: var(--text-normal) !important;
+	background: var(--background-modifier-hover) !important;
+	width: 36px;
+	height: 36px !important;
+}
+
+.cd-bar-month .cd-bar-actions {
+	min-width: 58px;
+	justify-content: flex-end;
+}
+
+/* ── 月份頁：底部月份滑軌 ── */
+
+.cd-scroll.has-rail {
+	padding-bottom: calc(170px + var(--cd-safe-bottom, 0px));
+}
+
+.cd-rail {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 5;
+	/* 背景延伸到手機工具列底下，滑軌本身在工具列上方 */
+	padding: 10px 0 calc(14px + var(--cd-safe-bottom, 0px));
+	background: var(--background-primary);
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.cd-rail-track {
+	display: flex;
+	/* 放得下時置中；放不下時從左邊開始，才捲得到第一個 */
+	justify-content: safe center;
+	gap: 8px;
+	overflow-x: auto;
+	padding: 0 16px;
+	scrollbar-width: none;
+}
+
+.cd-rail-track::-webkit-scrollbar {
+	display: none;
+}
+
+.cd-root .cd-rail-chip {
+	position: relative;
+	flex: 0 0 auto;
+	min-width: 52px;
+	padding: 9px 12px 11px;
+	border-radius: 14px;
+	font-size: 14px;
+	color: var(--cd-muted);
+	background: var(--cd-soft);
+	white-space: nowrap;
+}
+
+.cd-root .cd-rail-chip.is-year {
+	font-size: 12px;
+	color: var(--cd-faint);
+	background: none;
+}
+
+.cd-root .cd-rail-chip.is-active {
+	color: #fff;
+	font-weight: 700;
+	background: linear-gradient(140deg, var(--cd-b), var(--cd-a));
+}
+
+.cd-rail-dot {
+	position: absolute;
+	left: 50%;
+	bottom: 4px;
+	width: 4px;
+	height: 4px;
+	margin-left: -2px;
+	border-radius: 50%;
+	background: currentColor;
+	opacity: 0.6;
+}
+
+.cd-root .cd-fab.is-raised {
+	left: auto;
+	right: 18px;
+	bottom: calc(84px + var(--cd-safe-bottom, 0px));
+	transform: none;
+}
+
+.cd-root .cd-fab.is-raised:active {
+	transform: scale(0.92);
+}
+
+/* 保險：不管主題怎麼設定，長句子都要在卡片裡換行 */
+.cd-mc-quote-text,
+.cd-dc-text,
+.cd-reader-quote {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+/* ── 年份頁：輪播左右箭頭（只在有滑鼠的裝置顯示） ── */
+
+.cd-carousel-wrap {
+	position: relative;
+}
+
+.cd-carousel:focus {
+	outline: none;
+}
+
+.cd-root .cd-carousel-arrow {
+	position: absolute;
+	top: calc(50% - 30px);
+	z-index: 2;
+	width: 44px;
+	height: 44px !important;
+	color: var(--text-normal) !important;
+	background: var(--background-primary) !important;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+}
+
+.cd-root .cd-carousel-arrow.is-prev {
+	left: 12px;
+}
+
+.cd-root .cd-carousel-arrow.is-next {
+	right: 12px;
+}
+
+@media (hover: none) {
+	.cd-root .cd-carousel-arrow {
+		display: none;
+	}
+}
+
+/* ── 寬螢幕：內容不要拉得太寬 ── */
+
+.cd-year-grid,
+.cd-banner,
+.cd-cal,
+.cd-list,
+.cd-reader,
+.cd-pager {
+	margin-left: max(16px, calc((100% - 760px) / 2));
+	margin-right: max(16px, calc((100% - 760px) / 2));
+}
+
+/* ── 單篇頁：底部日期滑軌 ── */
+
+.cd-root .cd-rail-day {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+	min-width: 48px;
+	height: 54px;
+	padding: 0 8px;
+	background-size: cover;
+	background-position: center;
+	color: var(--text-normal);
+}
+
+.cd-rail-day-num {
+	font-size: 17px;
+	font-weight: 700;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+}
+
+.cd-rail-day-wd {
+	font-size: 10px;
+	opacity: 0.7;
+}
+
+.cd-root .cd-rail-day.is-sun {
+	color: var(--cd-sun);
+}
+
+.cd-root .cd-rail-day.is-sat {
+	color: var(--cd-sat);
+}
+
+.cd-root .cd-rail-day.has-cover {
+	color: #fff;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.cd-root .cd-rail-day.is-active {
+	color: #fff;
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 2px;
+}
+
+.cd-root .cd-rail-day.is-active:not(.has-cover) {
+	background: linear-gradient(140deg, var(--cd-b), var(--cd-a));
+}
+
+.cd-day-rail .cd-rail-track {
+	padding-top: 4px;
+	padding-bottom: 4px;
+	align-items: center;
+}
+
+/* ── 快速記錄 ── */
+
+.cd-root .cd-save-btn {
+	padding: 7px 18px;
+	border-radius: 999px;
+	font-size: 14px;
+	font-weight: 700;
+	color: var(--text-on-accent);
+	background: var(--interactive-accent);
+}
+
+.cd-root .cd-save-btn:disabled {
+	opacity: 0.5;
+}
+
+.cd-edit-warn {
+	margin: 10px 16px 0;
+	padding: 10px 14px;
+	border-radius: 12px;
+	font-size: 13px;
+	color: #9a3412;
+	background: #ffedd5;
+}
+
+.theme-dark .cd-edit-warn {
+	color: #fdba74;
+	background: rgba(234, 88, 12, 0.18);
+}
+
+.cd-edit-warn[hidden] {
+	display: none;
+}
+
+.cd-form {
+	display: flex;
+	flex-direction: column;
+	margin: 14px max(16px, calc((100% - 760px) / 2)) 0;
+	padding: 20px 18px 22px;
+	border-radius: var(--cd-radius);
+	background: var(--cd-card);
+	box-shadow: var(--cd-shadow);
+	border-top: 6px solid var(--cd-a);
+}
+
+.cd-field-label {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	color: var(--cd-muted);
+	margin: 18px 0 8px;
+}
+
+.cd-form > .cd-field-label:first-child {
+	margin-top: 0;
+}
+
+.cd-field-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.cd-field-note {
+	font-size: 11px;
+	color: var(--cd-faint);
+}
+
+.cd-root .cd-one-input,
+.cd-root .cd-body-input {
+	width: 100%;
+	box-sizing: border-box;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 14px;
+	background: var(--cd-soft);
+	color: var(--text-normal);
+	font: inherit;
+	resize: vertical;
+	padding: 12px 14px;
+}
+
+.cd-root .cd-one-input {
+	font-size: 19px;
+	font-weight: 600;
+	line-height: 1.5;
+	/* 高度由程式跟著內容調整 */
+	resize: none;
+	overflow: hidden;
+}
+
+.cd-root .cd-body-input {
+	font-size: 15px;
+	line-height: 1.7;
+	min-height: 180px;
+}
+
+.cd-root .cd-one-input:focus,
+.cd-root .cd-body-input:focus {
+	outline: none;
+	border-color: var(--interactive-accent);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--interactive-accent) 20%, transparent);
+}
+
+.cd-mood-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.cd-root .cd-mood-btn {
+	flex: 1;
+	min-width: 52px;
+	max-width: 72px;
+	padding: 8px 0 6px;
+	border-radius: 14px;
+	font-size: 30px;
+	line-height: 1;
+	background: var(--cd-soft);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	color: var(--cd-muted);
+	transition: transform 0.12s ease, background 0.12s ease;
+}
+
+/* 沒選的時候是灰色，選到的那個才上色，比較好一眼看出選了哪個 */
+.cd-root .cd-mood-btn .cd-mood-icon {
+	color: var(--cd-faint);
+	transition: color 0.12s ease;
+}
+
+.cd-root .cd-mood-btn:hover .cd-mood-icon,
+.cd-root .cd-mood-btn.is-on .cd-mood-icon {
+	color: var(--cd-mood);
+}
+
+.cd-mood-btn-label {
+	font-size: 12px;
+}
+
+.cd-root .cd-mood-btn.is-on {
+	background: var(--cd-soft);
+	box-shadow: inset 0 0 0 2px var(--cd-mood, var(--interactive-accent));
+	color: var(--text-normal);
+	font-weight: 600;
+	transform: scale(1.05);
+}
+
+.cd-photo-strip {
+	display: flex;
+	gap: 10px;
+	overflow-x: auto;
+	padding: 4px 2px 6px;
+	scrollbar-width: thin;
+}
+
+.cd-photo-tile,
+.cd-photo-add {
+	position: relative;
+	flex: 0 0 92px;
+	height: 92px;
+	border-radius: 14px;
+	overflow: hidden;
+}
+
+.cd-root .cd-photo-tile img {
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	margin: 0;
+	object-fit: cover;
+	display: block;
+}
+
+.cd-photo-tile.is-cover {
+	outline: 3px solid var(--interactive-accent);
+	outline-offset: -3px;
+}
+
+.cd-photo-badge {
+	position: absolute;
+	left: 6px;
+	bottom: 6px;
+	padding: 1px 7px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	color: #fff;
+	background: var(--interactive-accent);
+}
+
+.cd-root .cd-photo-del {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.cd-photo-del svg {
+	width: 14px;
+	height: 14px;
+}
+
+.cd-photo-add {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	font-size: 12px;
+	color: var(--cd-muted);
+	border: 2px dashed var(--background-modifier-border);
+	box-sizing: border-box;
+	cursor: pointer;
+}
+
+.cd-photo-add.is-busy {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.cd-photo-add input {
+	display: none;
+}
+
+.cd-root .cd-open-obsidian {
+	display: block;
+	margin: 16px auto 0;
+	padding: 10px 16px;
+	font-size: 13px;
+	color: var(--cd-muted);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* ── 所有日記 ── */
+
+/* 「N 篇」點了會打開所有日記：做成淡色膠囊加箭頭，手機上也看得出能點 */
+.cd-root .cd-stats[role="button"] {
+	padding: 5px 8px 5px 12px;
+	border-radius: 999px;
+	background: var(--cd-soft);
+}
+
+.cd-root .cd-stats[role="button"]::after {
+	content: "›";
+	margin-left: 2px;
+	font-size: 18px;
+	line-height: 1;
+	color: var(--cd-muted);
+}
+
+.cd-root .cd-stats[role="button"]:hover {
+	background: var(--background-modifier-hover);
+}
+
+.cd-all-tools {
+	position: sticky;
+	top: -16px;
+	z-index: 3;
+	margin-top: 8px;
+	padding: 10px max(16px, calc((100% - 760px) / 2)) 8px;
+	background: var(--background-primary);
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.cd-search {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 14px;
+	border-radius: 14px;
+	background: var(--cd-soft);
+	border: 1px solid var(--background-modifier-border);
+}
+
+.cd-search:focus-within {
+	border-color: var(--interactive-accent);
+}
+
+.cd-search-icon {
+	display: flex;
+	color: var(--cd-muted);
+}
+
+.cd-root .cd-search-input {
+	flex: 1;
+	min-width: 0;
+	height: 42px;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	font-size: 15px;
+	color: var(--text-normal);
+	padding: 0;
+}
+
+.cd-root .cd-search-input:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+.cd-filter-row {
+	display: flex;
+	gap: 8px;
+	overflow-x: auto;
+	margin-top: 10px;
+	scrollbar-width: none;
+}
+
+.cd-filter-row::-webkit-scrollbar {
+	display: none;
+}
+
+.cd-root .cd-filter-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	flex: 0 0 auto;
+	padding: 6px 12px;
+	border-radius: 999px;
+	font-size: 13px;
+	white-space: nowrap;
+	background: var(--cd-soft);
+	color: var(--cd-muted);
+}
+
+.cd-filter-chip .cd-mood-icon {
+	font-size: 16px;
+}
+
+.cd-root .cd-filter-chip.is-on .cd-mood-icon {
+	color: currentColor;
+}
+
+.cd-root .cd-filter-chip.is-on {
+	color: var(--text-on-accent);
+	background: var(--interactive-accent);
+	font-weight: 600;
+}
+
+.cd-all-tools .cd-hint {
+	margin: 8px 0 0;
+	text-align: left;
+}
+
+.cd-all-tools .cd-hint:empty {
+	display: none;
+}
+
+.cd-all-month {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	margin: 26px max(16px, calc((100% - 760px) / 2)) -8px;
+	padding-left: 10px;
+	border-left: 4px solid var(--cd-a);
+}
+
+.cd-all-month-title {
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.cd-all-month-count {
+	font-size: 12px;
+	color: var(--cd-muted);
+}
+
+.cd-dc-snippet {
+	margin: 4px 0 0;
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--cd-muted);
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	white-space: normal;
+}
+
+/* ── 月份頁：今天還沒寫的提示卡 ── */
+
+.cd-today-prompt {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	min-height: 84px;
+	padding: 14px 16px;
+	border-radius: 18px;
+	border: 2px dashed color-mix(in srgb, var(--interactive-accent) 55%, transparent);
+	background: color-mix(in srgb, var(--interactive-accent) 7%, var(--cd-card));
+	box-sizing: border-box;
+}
+
+.cd-today-prompt:active {
+	transform: scale(0.98);
+}
+
+.cd-today-prompt-icon {
+	flex: 0 0 44px;
+	height: 44px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-on-accent);
+	background: var(--interactive-accent);
+}
+
+.cd-today-prompt-icon svg {
+	width: 22px;
+	height: 22px;
+}
+
+.cd-today-prompt-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.cd-today-prompt-title {
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.cd-today-prompt-sub {
+	font-size: 12px;
+	color: var(--cd-muted);
+}
+
+/* 系統設定「減少動態效果」時，關掉動畫和平滑捲動 */
+@media (prefers-reduced-motion: reduce) {
+	.cd-root *,
+	.cd-root *::before,
+	.cd-root *::after {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		scroll-behavior: auto !important;
+	}
+}
