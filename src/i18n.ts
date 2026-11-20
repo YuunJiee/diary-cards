@@ -370,16 +370,12 @@ export function setLocale(l: Locale) {
 	Object.assign(t, DICTS[l]);
 }
 
-/** Obsidian 的介面語言（存在 localStorage，英文時沒有值） */
-export function obsidianLocale(): Locale {
-	let lang: string | null = null;
-	try {
-		lang = window.localStorage.getItem("language");
-	} catch {
-		// 讀不到就當英文
-	}
-	// Obsidian 的語言代碼：zh 是簡體、zh-TW 是繁體
-	const l = lang?.toLowerCase() ?? "";
+/**
+ * 把 Obsidian 的語言代碼對應到介面語言。
+ * Obsidian 用 zh 表示簡體、zh-TW 表示繁體；moment 的代碼是 zh-cn、zh-tw。
+ */
+export function localeFromLanguage(lang: string): Locale {
+	const l = lang.toLowerCase();
 	if (l === "zh-tw" || l === "zh-hk" || l === "zh-hant") return "zh-TW";
 	if (l.startsWith("zh")) return "zh-CN";
 	return "en";

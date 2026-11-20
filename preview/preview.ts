@@ -5,6 +5,14 @@ import PHOTO_IDS from "./photo-ids.json";
 import { bodySummary } from "../src/summary";
 import { DiaryEntry, DiaryUI, toDateKey } from "../src/ui";
 
+// Obsidian 會提供這幾個全域函式，預覽頁沒有 Obsidian，先補上簡易版本
+const g = window as unknown as Record<string, unknown>;
+g.activeDocument = window.document;
+g.createEl = (tag: string) => window.document.createElement(tag);
+(Node.prototype as unknown as Record<string, unknown>).instanceOf = function (this: Node, type: new () => Node) {
+	return this instanceof type;
+};
+
 // 網址加 ?lang=en 或 ?lang=zh-CN 看英文、簡體介面（英文時範例日記也用英文，給 README 截圖用）
 const lang = new URLSearchParams(location.search).get("lang");
 if (lang === "en" || lang === "zh-CN") setLocale(lang);
@@ -95,7 +103,7 @@ if (REAL_PHOTOS) {
 }
 
 let monthCovers = new Map<string, { path: string; url: string }>();
-const root = document.getElementById("app")!;
+const root = activeDocument.getElementById("app")!;
 const ui = new DiaryUI(
 	root,
 	{
@@ -115,21 +123,23 @@ const ui = new DiaryUI(
 			};
 		},
 		saveEntry: async (input) => {
-			(window as any).lastSave = { ...input, photos: input.photos.map((p) => (p.kind === "new" ? { kind: "new", ext: p.ext, bytes: p.data.byteLength } : { kind: "existing", path: p.photo.path })) };
+			(window as unknown as { lastSave: unknown }).lastSave = { ...input, photos: input.photos.map((p) => (p.kind === "new" ? { kind: "new", ext: p.ext, bytes: p.data.byteLength } : { kind: "existing", path: p.photo.path })) };
 			const [y, m, d] = input.date.split("-").map(Number);
 			const urls = input.photos.map((p) => (p.kind === "new" ? { path: `${input.date}-new.${p.ext}`, url: p.url } : p.photo));
 			if (urls.length && input.coverIndex !== null) urls.unshift(...urls.splice(input.coverIndex, 1));
 			const rest = entries.filter((x) => x.date !== input.date);
 			rest.push({ date: input.date, year: y, month: m, day: d, oneLiner: input.oneLiner, mood: input.mood, cover: urls[0]?.url, photos: urls, path: "" });
 			entries.splice(0, entries.length, ...rest);
-			setTimeout(() => ui.setEntries(entries), 200); // 模擬 Obsidian 讀檔的延遲
+			window.setTimeout(() => ui.setEntries(entries), 200); // 模擬 Obsidian 讀檔的延遲
 		},
 		search: async (q) => {
 			const hits = new Map<string, string>();
 			for (const e of entries) if (e.day % 4 === 0 && BODY_TEXT.toLowerCase().includes(q.toLowerCase())) hits.set(e.date, "…" + BODY_TEXT);
 			return hits;
 		},
-		openInObsidian: async (date) => alert("在 Obsidian 打開 " + date),
+		openInObsidian: async (date) => {
+			(window as unknown as { lastOpen: string }).lastOpen = date; // 預覽頁沒有 Obsidian，記下來給自動測試看
+		},
 		setMonthCover: (ym, path) => {
 			const covers = new Map(monthCovers);
 			const photo = entries.flatMap((e) => e.photos).find((p) => p.path === path);
@@ -140,7 +150,8 @@ const ui = new DiaryUI(
 		},
 		renderBody: async (e, el) => {
 			if (e.day % 4 === 0) {
-				el.innerHTML = BODY_HTML;
+				// 範例內文是寫死的 HTML；用 DOMParser 轉成元素，不直接塞 innerHTML
+				el.append(...Array.from(new DOMParser().parseFromString(BODY_HTML, "text/html").body.childNodes));
 			}
 		},
 	},
@@ -157,4 +168,4 @@ if (params.get("screen") === "month") ui.go({ kind: "month", year: 2026, month: 
 if (params.get("screen") === "entry") ui.go({ kind: "entry", date: params.get("date") ?? "2026-09-24" });
 if (params.get("screen") === "all") ui.go({ kind: "all" });
 if (params.get("screen") === "edit") ui.openEditor(params.get("date") ?? "2026-09-24");
-(window as any).ui = ui; // 給自動測試用
+(window as unknown as { ui: DiaryUI }).ui = ui; // 給自動測試用

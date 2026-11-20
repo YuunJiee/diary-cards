@@ -4,6 +4,8 @@ import {
 	Component,
 	debounce,
 	ItemView,
+	FrontMatterCache,
+	getLanguage,
 	MarkdownRenderer,
 	moment,
 	normalizePath,
@@ -15,7 +17,7 @@ import {
 	WorkspaceLeaf,
 } from "obsidian";
 import { DEFAULT_DATE_FORMAT, diaryNotePath, DiaryDate, fillTemplate, parseDiaryDate } from "./dates";
-import { obsidianLocale, setLocale, t } from "./i18n";
+import { Locale, localeFromLanguage, setLocale, t } from "./i18n";
 import { bodySummary, FRONTMATTER_RE, stripFrontmatter } from "./summary";
 import { DiaryEntry, DiaryUI, Draft, parseMood, Photo, SaveInput, Screen } from "./ui";
 
@@ -47,6 +49,22 @@ interface DiaryCardsSettings {
 	weekStart: "auto" | "sunday" | "monday";
 	/** 心情的配色 */
 	moodPalette: "warm" | "classic" | "soft" | "mono";
+}
+
+/** Obsidian 的介面語言 */
+function obsidianLocale(): Locale {
+	return localeFromLanguage(getLanguage());
+}
+
+/** frontmatter 裡某個欄位的值（Obsidian 給的型別是 any，這裡當成 unknown 處理） */
+function fmValue(fm: FrontMatterCache | undefined, key: string): unknown {
+	const value: unknown = fm?.[key];
+	return value;
+}
+
+/** 把 frontmatter 的值轉成字串；物件、陣列之類的不算 */
+function fmText(v: unknown): string {
+	return typeof v === "string" || typeof v === "number" || typeof v === "boolean" ? String(v).trim() : "";
 }
 
 /** 預設值；欄位名稱跟著介面語言（中文的 vault 用中文欄位） */
@@ -113,7 +131,7 @@ export default class DiaryCardsPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		const saved = await this.loadData();
+		const saved = (await this.loadData()) as Partial<DiaryCardsSettings> | null;
 		// 第一次安裝：沿用 Obsidian 內建「日記」外掛的資料夾、日期格式和範本
 		const base = saved ? defaultSettings() : { ...defaultSettings(), ...(await this.dailyNotesSettings()) };
 		this.settings = Object.assign(base, saved);
@@ -210,16 +228,16 @@ export default class DiaryCardsPlugin extends Plugin {
 			seen.add(date.key);
 
 			const cache = this.app.metadataCache.getFileCache(file);
-			const raw = cache?.frontmatter?.[this.settings.oneLinerKey];
-			const hasOneLiner = raw != null && String(raw).trim() !== "";
-			const mood = cache?.frontmatter?.[this.settings.moodKey];
+			const oneLiner = fmText(fmValue(cache?.frontmatter, this.settings.oneLinerKey));
+			const hasOneLiner = oneLiner !== "";
+			const mood = fmValue(cache?.frontmatter, this.settings.moodKey);
 			entries.push({
 				date: date.key,
 				year: date.year,
 				month: date.month,
 				day: date.day,
 				// 沒填一句話就用內文第一段（先用快取，沒有的話 fillSummaries 會補上）
-				oneLiner: hasOneLiner ? String(raw).trim() : this.cachedSummary(file),
+				oneLiner: hasOneLiner ? oneLiner : this.cachedSummary(file),
 				oneLinerFromBody: !hasOneLiner,
 				mood: parseMood(mood),
 				...this.findPhotos(file, cache),
@@ -253,8 +271,8 @@ export default class DiaryCardsPlugin extends Plugin {
 		for (const e of entries) {
 			const file = this.fileFor(e);
 			if (!file) continue;
-			const raw = this.app.metadataCache.getFileCache(file)?.frontmatter?.[this.settings.oneLinerKey];
-			if (raw != null && String(raw).trim()) continue;
+			const raw = fmValue(this.app.metadataCache.getFileCache(file)?.frontmatter, this.settings.oneLinerKey);
+			if (fmText(raw)) continue;
 			const hit = this.summaries.get(file.path);
 			if (hit && hit.mtime === file.stat.mtime) continue;
 			const text = bodySummary(stripFrontmatter(await this.app.vault.cachedRead(file)));
@@ -272,7 +290,7 @@ export default class DiaryCardsPlugin extends Plugin {
 			if (photo && !photos.some((p) => p.path === photo.path)) photos.push(photo);
 		}
 		// frontmatter 指定的封面排到第一張
-		const fmCover = cache?.frontmatter?.cover;
+		const fmCover = fmValue(cache?.frontmatter, "cover");
 		if (typeof fmCover === "string" && fmCover.trim()) {
 			const photo = this.resolveImage(fmCover.trim().replace(/^!?\[\[|\]\]$/g, ""), file);
 			if (photo) {
@@ -348,7 +366,7 @@ export default class DiaryCardsPlugin extends Plugin {
 		if (!file) return { date, exists: false, oneLiner: "", body: "", photos: [], hasCover: false, preserved: [] };
 
 		const text = await this.app.vault.read(file);
-		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter ?? {};
+		const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ?? {}) as Record<string, unknown>;
 		const photos: Photo[] = [];
 		const preserved: string[] = [];
 		const lines: string[] = [];
@@ -364,7 +382,7 @@ export default class DiaryCardsPlugin extends Plugin {
 			} else lines.push(line);
 		}
 		const cover = typeof fm.cover === "string" ? this.resolveImage(fm.cover.replace(/^!?\[\[|\]\]$/g, ""), file) : null;
-		const str = (v: unknown) => (v == null ? "" : String(v).trim());
+		const str = fmText;
 		return {
 			date,
 			exists: true,
@@ -432,7 +450,7 @@ export default class DiaryCardsPlugin extends Plugin {
 		});
 
 		// frontmatter 交給 Obsidian 寫，含冒號之類的特殊字元會自動加引號
-		await this.app.fileManager.processFrontMatter(file, (fm) => {
+		await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
 			fm[this.settings.oneLinerKey] = input.oneLiner || null;
 			// 取消選擇時清空；不是 1～5 的值（例如手打的字）不動，免得被洗掉
 			if (input.mood) fm[this.settings.moodKey] = input.mood;
@@ -500,7 +518,7 @@ class DiaryCardsView extends ItemView {
 			openInObsidian: (date) => this.plugin.openInObsidian(date),
 			search: (query) => this.plugin.search(query),
 			renderBody: (entry, el) => this.renderBody(entry, el),
-			setMonthCover: (ym, path) => this.plugin.setMonthCover(ym, path),
+			setMonthCover: (ym, path) => void this.plugin.setMonthCover(ym, path),
 			onNavigate: () => this.app.workspace.requestSaveLayout(),
 		});
 		this.registerEvent(this.app.workspace.on("layout-change", () => this.ui?.measureBottomInset()));

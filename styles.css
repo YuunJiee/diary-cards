@@ -1439,6 +1439,7 @@
 	font-weight: 600;
 	line-height: 1.5;
 	/* 高度由程式跟著內容調整 */
+	height: var(--cd-input-height, auto);
 	resize: none;
 	overflow: hidden;
 }

@@ -1,4 +1,5 @@
-// 日記卡片（Diary Cards）的介面。這裡不依賴 Obsidian，所以也能在 preview/ 裡直接用瀏覽器預覽。
+// 日記卡片（Diary Cards）的介面。這裡不 import Obsidian，所以也能在 preview/ 裡直接用瀏覽器預覽。
+// 用到的 Obsidian 全域函式（createEl、activeDocument、instanceOf）在預覽頁有簡易版本。
 
 import { locale, t } from "./i18n";
 
@@ -113,7 +114,7 @@ function setSvg(el: HTMLElement, svg: string) {
 		node = parsed;
 		svgCache.set(svg, node);
 	}
-	el.replaceChildren(document.importNode(node, true));
+	el.replaceChildren(el.ownerDocument.importNode(node, true));
 }
 
 function moodIcon(parent: HTMLElement, cls: string, mood: Mood): HTMLSpanElement {
@@ -157,7 +158,7 @@ function h<K extends keyof HTMLElementTagNameMap>(
 	parent?: HTMLElement,
 	text?: string
 ): HTMLElementTagNameMap[K] {
-	const el = document.createElement(tag);
+	const el = createEl(tag);
 	if (cls) el.className = cls;
 	if (text !== undefined) el.textContent = text;
 	if (parent) parent.appendChild(el);
@@ -322,7 +323,7 @@ export class DiaryUI {
 	 */
 	measureBottomInset() {
 		let inset = 0;
-		const bar = document.querySelector<HTMLElement>(this.bottomOverlaySelector);
+		const bar = activeDocument.querySelector<HTMLElement>(this.bottomOverlaySelector);
 		if (bar && getComputedStyle(bar).display !== "none") {
 			const barRect = bar.getBoundingClientRect();
 			const overlap = this.root.getBoundingClientRect().bottom - barRect.top;
@@ -408,9 +409,9 @@ export class DiaryUI {
 		const prevScroll = keepScroll ? this.captureScroll() : null;
 		this.pendingScroll = this.screen.kind === "entry" ? prevScroll : null;
 		// 正在搜尋框打字時被背景更新重畫：重畫後把焦點和游標放回去，手機鍵盤才不會收起來
-		const active = document.activeElement;
+		const active = activeDocument.activeElement;
 		const typing =
-			keepScroll && active instanceof HTMLInputElement && active.classList.contains("cd-search-input") && this.root.contains(active)
+			keepScroll && active?.instanceOf(HTMLInputElement) && active.classList.contains("cd-search-input") && this.root.contains(active)
 				? { start: active.selectionStart, end: active.selectionEnd }
 				: null;
 		this.shownEntry = null;
@@ -443,7 +444,7 @@ export class DiaryUI {
 			input?.focus({ preventScroll: true });
 			input?.setSelectionRange(typing.start, typing.end);
 		}
-		requestAnimationFrame(() => this.measureBottomInset());
+		window.requestAnimationFrame(() => this.measureBottomInset());
 	}
 
 	/** 單篇頁畫出來的樣子取決於這篇和前後篇；用來判斷要不要重畫 */
@@ -573,7 +574,7 @@ export class DiaryUI {
 		}
 
 		// 打開時把這個月的卡片捲到中間
-		requestAnimationFrame(() => {
+		window.requestAnimationFrame(() => {
 			if (carousel.dataset.restored) return;
 			const target = focusCard ?? (carousel.children[0] as HTMLElement | undefined);
 			if (!target) return;
@@ -819,7 +820,7 @@ export class DiaryUI {
 			chip.addEventListener("click", () => this.go({ kind: "month", year, month: m }));
 		}
 		yearChip(year + 1, `${year + 1} ›`);
-		requestAnimationFrame(() => {
+		window.requestAnimationFrame(() => {
 			if (active) track.scrollLeft = active.offsetLeft - (track.clientWidth - active.clientWidth) / 2;
 		});
 	}
@@ -863,7 +864,7 @@ export class DiaryUI {
 		}
 
 		jumpChip(nextEntry, `${nextEntry ? t.monthShort(nextEntry.month) : ""} ›`);
-		requestAnimationFrame(() => {
+		window.requestAnimationFrame(() => {
 			if (active) track.scrollLeft = active.offsetLeft - (track.clientWidth - active.clientWidth) / 2;
 		});
 	}
@@ -1003,7 +1004,7 @@ export class DiaryUI {
 		}
 
 		const body = h("div", "cd-reader-body markdown-rendered", inner);
-		this.host
+		void this.host
 			.renderBody(e, body)
 			.catch((err) => console.error("[diary-cards] 內文顯示失敗", err))
 			.then(() => {
@@ -1119,11 +1120,14 @@ export class DiaryUI {
 				draw();
 				return;
 			}
-			this.host.search(q).then((hits) => {
-				if (seq !== this.searchSeq) return;
-				this.allHits = hits;
-				draw();
-			});
+			this.host
+				.search(q)
+				.then((hits) => {
+					if (seq !== this.searchSeq) return;
+					this.allHits = hits;
+					draw();
+				})
+				.catch((err) => console.error("[diary-cards] 搜尋失敗", err));
 		};
 		input.addEventListener("input", () => {
 			this.allQuery = input.value;
@@ -1136,7 +1140,7 @@ export class DiaryUI {
 		if (this.allQuery && !this.allHits.size) runSearch();
 		// 背景重畫時 render 已經保留了目前位置，不要再跳回上次離開時的位置
 		if (restoreSaved) {
-			requestAnimationFrame(() => {
+			window.requestAnimationFrame(() => {
 				if (this.scrollEl) this.scrollEl.scrollTop = this.allScroll;
 			});
 		}
@@ -1202,7 +1206,7 @@ export class DiaryUI {
 			this.leaveArmed = false;
 			warn.hidden = true;
 		};
-		saveBtn.addEventListener("click", () => this.saveEdit(saveBtn, warn));
+		saveBtn.addEventListener("click", () => void this.saveEdit(saveBtn, warn));
 		// 照片還在處理時不能存，不然只會存到已經處理好的那幾張
 		const paintSave = () => {
 			const p = st.processing;
@@ -1220,9 +1224,10 @@ export class DiaryUI {
 		one.placeholder = t.oneLinerPlaceholder;
 		one.value = st.oneLiner;
 		// 跟著內容長高，長句子不會被藏在框外
+		// 高度放在 CSS 變數裡（.cd-one-input 的 height 用它），先拿掉再量內容的高度
 		const fit = () => {
-			one.style.height = "auto";
-			one.style.height = `${one.scrollHeight + 2}px`;
+			one.style.removeProperty("--cd-input-height");
+			one.style.setProperty("--cd-input-height", `${one.scrollHeight + 2}px`);
 		};
 		// 寬度變了（畫面剛排好、旋轉手機、拉側欄）就重算；輸入框離開畫面後停止觀察
 		let lastWidth = 0;
@@ -1299,7 +1304,8 @@ export class DiaryUI {
 			input.type = "file";
 			input.accept = "image/*";
 			input.multiple = true;
-			input.addEventListener("change", async () => {
+			input.addEventListener("change", () => void addFiles());
+			const addFiles = async () => {
 				const files = Array.from(input.files ?? []);
 				if (!files.length || st.processing) return;
 				const progress = { total: files.length, done: 0, failed: 0 };
@@ -1327,7 +1333,7 @@ export class DiaryUI {
 					warn.hidden = false;
 					warn.textContent = t.photosFailed(progress.failed);
 				}
-			});
+			};
 		};
 		drawPhotos();
 
@@ -1343,15 +1349,16 @@ export class DiaryUI {
 		});
 
 		const more = h("button", "cd-open-obsidian", scroll, t.openInObsidian);
-		more.addEventListener("click", async () => {
+		const openFull = async () => {
 			if (st.dirty && !(await this.saveEdit(saveBtn, warn, false))) return;
 			this.edit = null;
 			// 這個分頁離開編輯畫面，不然切回來時還是舊的表單，按儲存也沒反應
 			this.showAfterEdit(date);
 			await this.host.openInObsidian(date);
-		});
+		};
+		more.addEventListener("click", () => void openFull());
 
-		if (!st.exists && !st.oneLiner) requestAnimationFrame(() => one.focus());
+		if (!st.exists && !st.oneLiner) window.requestAnimationFrame(() => one.focus());
 	}
 
 	/** 儲存；成功回傳 true。goToEntry 為 true 時存完跳到單篇頁 */
@@ -1386,7 +1393,7 @@ export class DiaryUI {
 			if (this.byDate.has(st.date)) this.go({ kind: "entry", date: st.date });
 			else {
 				this.pendingDate = st.date;
-				setTimeout(() => {
+				window.setTimeout(() => {
 					if (this.pendingDate !== st.date) return;
 					this.pendingDate = null;
 					const [y, m] = st.date.split("-").map(Number);
@@ -1456,8 +1463,8 @@ export class DiaryUI {
 
 		let frame = 0;
 		track.addEventListener("scroll", () => {
-			cancelAnimationFrame(frame);
-			frame = requestAnimationFrame(() => {
+			window.cancelAnimationFrame(frame);
+			frame = window.requestAnimationFrame(() => {
 				const i = index();
 				counter.textContent = `${i + 1} / ${photos.length}`;
 				dotEls.forEach((d, j) => d.classList.toggle("is-on", j === i));
