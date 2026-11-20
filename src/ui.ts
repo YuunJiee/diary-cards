@@ -264,7 +264,7 @@ async function prepareImage(file: File, max = 2048): Promise<DraftPhoto> {
 	try {
 		const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
 		const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
-		const canvas = document.createElement("canvas");
+		const canvas = createEl("canvas");
 		canvas.width = Math.round(bmp.width * scale);
 		canvas.height = Math.round(bmp.height * scale);
 		canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
