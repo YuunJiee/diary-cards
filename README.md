@@ -55,7 +55,9 @@ Diary Cards only changes a note when you save it from the quick entry screen. It
 
 ## Installing
 
-Until Diary Cards is in the community plugin list, you can install it with [BRAT](https://github.com/TfTHacker/obsidian42-brat) (add `YuunJiee/diary-cards`), or manually: download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/YuunJiee/diary-cards/releases) into `<vault>/.obsidian/plugins/diary-cards/`, then enable **Diary Cards** under *Settings → Community plugins*.
+In Obsidian, open *Settings → Community plugins → Browse*, search for **Diary Cards**, then install and enable it. Requires Obsidian 1.8.7 or later.
+
+To try changes before they reach the plugin list, install it with [BRAT](https://github.com/TfTHacker/obsidian42-brat) (add `YuunJiee/diary-cards`). You can also install it manually: download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/YuunJiee/diary-cards/releases) into `<vault>/.obsidian/plugins/diary-cards/`.
 
 Open it from the ribbon icon or the command palette (**Diary Cards: Open**). Links to `obsidian://diary-cards` open it too, and `obsidian://diary-cards?write=today` starts today's entry.
 

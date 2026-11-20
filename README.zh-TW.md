@@ -57,7 +57,9 @@ Diary Cards 只有在快速記錄畫面按下儲存時才會修改筆記：更�
 
 ## 安裝
 
-還沒上架社群外掛之前，可以用 [BRAT](https://github.com/TfTHacker/obsidian42-brat) 安裝（加入 `YuunJiee/diary-cards`），或手動安裝：從[最新版本](https://github.com/YuunJiee/diary-cards/releases)下載 `main.js`、`manifest.json`、`styles.css`，放進 `<vault>/.obsidian/plugins/diary-cards/`，再到「設定 → 第三方外掛」啟用 **Diary Cards**。
+在 Obsidian 打開「設定 → 第三方外掛 → 瀏覽」，搜尋 **Diary Cards**，安裝後啟用。需要 Obsidian 1.8.7 以上。
+
+想搶先試用還沒上架的新版，可以用 [BRAT](https://github.com/TfTHacker/obsidian42-brat) 安裝（加入 `YuunJiee/diary-cards`）。也可以手動安裝：從[最新版本](https://github.com/YuunJiee/diary-cards/releases)下載 `main.js`、`manifest.json`、`styles.css`，放進 `<vault>/.obsidian/plugins/diary-cards/`。
 
 從左側的圖示或命令面板（**Diary Cards: 打開**）打開。筆記裡的 `obsidian://diary-cards` 連結也能打開，`obsidian://diary-cards?write=today` 會直接開始寫今天的日記。
 
