@@ -1,7 +1,7 @@
 {
   "id": "diary-cards",
   "name": "Diary Cards",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.8.7",
   "description": "View your daily notes as cards: month cards, a photo calendar, moods and quick one-line entries.",
   "author": "YuunJiee",

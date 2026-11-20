@@ -1,6 +1,6 @@
 {
   "name": "diary-cards",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "View your Obsidian daily notes as cards",
   "private": true,
   "license": "MIT",
