@@ -40,6 +40,12 @@
     document.body.appendChild(nav);
   }
 </script>
+<script>
+  // Obsidian 會提供這幾個全域函式，預覽頁沒有 Obsidian，先補上簡易版本
+  window.activeDocument = document;
+  window.createEl = (tag) => document.createElement(tag);
+  Node.prototype.instanceOf = function (type) { return this instanceof type; };
+</script>
 <script src="dist/preview.js"></script>
 </body>
 </html>

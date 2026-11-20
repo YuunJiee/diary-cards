@@ -5,14 +5,7 @@ import PHOTO_IDS from "./photo-ids.json";
 import { bodySummary } from "../src/summary";
 import { DiaryEntry, DiaryUI, toDateKey } from "../src/ui";
 
-// Obsidian 會提供這幾個全域函式，預覽頁沒有 Obsidian，先補上簡易版本
-const g = window as unknown as Record<string, unknown>;
-const doc: Document = window.document;
-g.activeDocument = doc;
-g.createEl = (tag: string) => doc.createElement(tag);
-(Node.prototype as unknown as Record<string, unknown>).instanceOf = function (this: Node, type: new () => Node) {
-	return Object.prototype.isPrototypeOf.call(type.prototype, this);
-};
+// Obsidian 的全域函式（createEl、activeDocument、instanceOf）在 index.html 裡補上簡易版本
 
 // 網址加 ?lang=en 或 ?lang=zh-CN 看英文、簡體介面（英文時範例日記也用英文，給 README 截圖用）
 const lang = new URLSearchParams(location.search).get("lang");
