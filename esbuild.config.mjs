@@ -13,7 +13,7 @@ if (mode === "preview") {
   });
 } else if (mode === "test") {
   await esbuild.build({
-    entryPoints: ["test/summary.test.ts", "test/dates.test.ts"],
+    entryPoints: ["test/summary.test.ts", "test/dates.test.ts", "test/photos.test.ts"],
     bundle: true,
     platform: "node",
     format: "cjs",

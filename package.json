@@ -9,7 +9,7 @@
     "build": "tsc --noEmit && node esbuild.config.mjs production",
     "preview": "node esbuild.config.mjs preview",
     "install-vault": "npm run build && mkdir -p \"$VAULT/.obsidian/plugins/diary-cards\" && cp main.js manifest.json styles.css \"$VAULT/.obsidian/plugins/diary-cards/\"",
-    "test": "node esbuild.config.mjs test && node test/dist/summary.test.js && node test/dist/dates.test.js",
+    "test": "node esbuild.config.mjs test && node test/dist/summary.test.js && node test/dist/dates.test.js && node test/dist/photos.test.js",
     "lint": "eslint .",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },

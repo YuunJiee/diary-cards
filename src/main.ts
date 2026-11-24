@@ -18,15 +18,12 @@ import {
 } from "obsidian";
 import { DEFAULT_DATE_FORMAT, diaryNotePath, DiaryDate, fillTemplate, parseDiaryDate } from "./dates";
 import { Locale, localeFromLanguage, setLocale, t } from "./i18n";
+import { EMBED_LINE_RE, placePhotos, PRESERVED_LINE_RE, splitPhotos } from "./photos";
 import { bodySummary, FRONTMATTER_RE, stripFrontmatter } from "./summary";
 import { DiaryEntry, DiaryUI, Draft, parseMood, Photo, SaveInput, Screen } from "./ui";
 
 const VIEW_TYPE = "diary-cards-view";
 const IMAGE_RE = /\.(png|jpe?g|gif|webp|avif|bmp|svg|heic)$/i;
-// 單獨一行的圖片嵌入：![[a.jpg]] 或 ![](a.jpg)
-const EMBED_LINE_RE = /^\s*(?:!\[\[([^\]]+)\]\]|!\[[^\]]*\]\(\s*<?([^)>]+?)>?(?:\s+"[^"]*")?\s*\))\s*$/;
-// 筆記裡 <!-- card-diary:ID --> 這種標記（從其他 App 匯入時留下的），編輯時不顯示但要保留
-const PRESERVED_LINE_RE = /^<!-- card-diary:[^>]*-->$/;
 
 interface DiaryCardsSettings {
 	/** 日記所在的資料夾，空白代表整個 vault */
@@ -367,20 +364,11 @@ export default class DiaryCardsPlugin extends Plugin {
 
 		const text = await this.app.vault.read(file);
 		const fm = (this.app.metadataCache.getFileCache(file)?.frontmatter ?? {}) as Record<string, unknown>;
-		const photos: Photo[] = [];
-		const preserved: string[] = [];
-		const lines: string[] = [];
-		for (const line of stripFrontmatter(text).split("\n")) {
-			if (PRESERVED_LINE_RE.test(line.trim())) {
-				preserved.push(line.trim());
-				continue;
-			}
-			const m = EMBED_LINE_RE.exec(line);
-			const photo = m ? this.resolveImage(m[1] ?? m[2], file) : null;
-			if (photo) {
-				if (!photos.some((p) => p.path === photo.path)) photos.push(photo);
-			} else lines.push(line);
-		}
+		const split = this.splitPhotos(text, file);
+		const photos = split.photos.map(({ path }) => {
+			const f = this.app.vault.getAbstractFileByPath(path);
+			return { path, url: f instanceof TFile ? this.app.vault.getResourcePath(f) : path };
+		});
 		const cover = typeof fm.cover === "string" ? this.resolveImage(fm.cover.replace(/^!?\[\[|\]\]$/g, ""), file) : null;
 		const str = fmText;
 		return {
@@ -388,12 +376,17 @@ export default class DiaryCardsPlugin extends Plugin {
 			exists: true,
 			oneLiner: str(fm[this.settings.oneLinerKey]),
 			mood: parseMood(fm[this.settings.moodKey]),
-			body: lines.join("\n").replace(/\n{3,}/g, "\n\n").trim(),
+			body: split.body,
 			photos,
 			coverPath: cover?.path,
 			hasCover: typeof fm.cover === "string" && fm.cover.trim() !== "",
-			preserved,
+			preserved: split.preserved,
 		};
+	}
+
+	/** 內文裡單獨一行的圖片和它們的位置（路徑是 vault 裡的路徑） */
+	private splitPhotos(text: string, file: TFile) {
+		return splitPhotos(stripFrontmatter(text), (link) => this.resolveImage(link, file)?.path ?? null);
 	}
 
 	async search(query: string): Promise<Map<string, string>> {
@@ -434,6 +427,7 @@ export default class DiaryCardsPlugin extends Plugin {
 			// 換成「已經存好的照片」：後面的步驟失敗、再按一次儲存時，不會把同一張照片又存一份
 			input.photos[i] = { kind: "existing", photo: { path: created.path, url: this.app.vault.getResourcePath(created) } };
 		}
+		const existingPaths = new Set(input.photos.flatMap((p) => (p.kind === "existing" ? [p.photo.path] : [])));
 		const links = paths.map((path) => {
 			const f = this.app.vault.getAbstractFileByPath(path);
 			// 連結格式也照 Obsidian 的設定（你的 vault 是相對路徑的 Markdown 連結）
@@ -445,7 +439,13 @@ export default class DiaryCardsPlugin extends Plugin {
 			const fm = match ?? "---\n---\n";
 			// 剛從範本建立的新日記：保留範本的內文，寫的內容接在後面
 			const template = existing ? "" : text.slice(match?.length ?? 0).trim();
-			const body = [template, input.preserved.join("\n"), input.body.trim(), links.join("\n\n")].filter(Boolean).join("\n\n");
+			// 原本就在內文裡的照片放回原來的位置，新照片接在最後
+			const anchors = new Map(this.splitPhotos(text, file).photos.map((p) => [p.path, p.anchor]));
+			const withPhotos = placePhotos(
+				input.body,
+				paths.map((path, i) => ({ link: links[i], anchor: existingPaths.has(path) ? anchors.get(path) : undefined }))
+			);
+			const body = [template, input.preserved.join("\n"), withPhotos].filter(Boolean).join("\n\n");
 			return (fm.endsWith("\n") ? fm : fm + "\n") + body + "\n";
 		});
 
